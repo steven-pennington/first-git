@@ -13,8 +13,8 @@
         <cfargument name="Employee_IP" type="string" required="yes" default="#CGI.REMOTE_ADDR#" />
         <cfargument name="event_id" type="string" required="true" default="#CreateUUID()#" />
         
-        <cfset var auditLogURL = "https://logging.ecp123.com/auditLog" />
-        <cfset var apiKey = "UXJzNHY0QmdyZjRQeHFEb1QzMldwMVhYd1BWcnBaRzM=" />
+        <cfset var auditLogURL = "https://LOG_URL/auditLog" />
+        <cfset var apiKey = "" />
         <cfset var exclusions = ["TD_AI_ID"] />
         <cfset var inclusions = ["TASK_AI_ID", "TASK_TYPE_ID", "TASK_ID","DATE_ID"] />
         <cfset var resident = "" />
@@ -24,9 +24,9 @@
         <cfset var getTaskType = "" />
         <cfset var rData = "" />
         
-        <cfif CGI.SERVER_NAME neq "secure.ecp123.com">
-            <cfset auditLogURL = "http://13.92.128.76:3001/auditLog" />
-            <cfset apiKey = "NlVHbjNpKioqbmg4UGlaSXZONFk0N0xJbWo1NGIy" />
+        <cfif CGI.SERVER_NAME neq "PROD_SERVER">
+            <cfset auditLogURL = "http://LOG_URL/auditLog" />
+            <cfset apiKey = "" />
         </cfif>
         
         <cfif arguments.oldData.recordCount>
@@ -173,7 +173,6 @@
                 
                 <cfset var serializedSendData = serializeJSON(local.sendDataNew) />
 
-                <!--- logging.ecp123.com is set as a record in the C:\Windows\System32\drivers\etc\hosts file on the computer  --->
                 <cfhttp method="POST" url="#local.auditLogURL#" result="rData" resolveurl="true">
                     <cfhttpparam type="header" name="Content-Type" value="application/json">
                     <cfhttpparam type="header" name="Accept" value="application/json">
@@ -183,7 +182,7 @@
 
                 <!--- We want to log any errors with reaching the audit log server or posting audit log information. --->
                 <cfif local.rData.statusCode neq "200 OK">
-                    <cfmail to="errors@ecp123.com" from="errors@ecp123.com" subject="Call to Audit Log failed with code #local.rData.statusCode# #cgi.server_name#" type="text" server="smtp.mandrillapp.com" username="ECP" password="#APPLICATION.mandrillPass#" port="587">
+                    <cfmail to="errors@ecp123.com" from="errors@ecp123.com" subject="Call to Audit Log failed with code #local.rData.statusCode# #cgi.server_name#" type="text">
                         <cfoutput>
                             #local.serializedSendData#
                         </cfoutput>
@@ -222,8 +221,8 @@
         <cfargument name="Employee_IP" type="string" required="yes" default="#CGI.REMOTE_ADDR#" />
         <cfargument name="event_id" type="string" required="true" default="#CreateUUID()#" />
         
-        <cfset var auditLogURL = "https://logging.ecp123.com/auditLog" />
-        <cfset var apiKey = "UXJzNHY0QmdyZjRQeHFEb1QzMldwMVhYd1BWcnBaRzM=" />
+        <cfset var auditLogURL = "https://LOG_URL/auditLog" />
+        <cfset var apiKey = "=" />
         <cfset var exclusions = ["TD_AI_ID"] />
         <cfset var inclusions = ["TASK_AI_ID", "TASK_TYPE_ID", "TASK_ID"] />
         <cfset var resident = "" />
@@ -233,9 +232,9 @@
         <cfset var getTaskType = "" />
         <cfset var rData = "" />
 
-        <cfif CGI.SERVER_NAME neq "secure.ecp123.com">
-            <cfset auditLogURL = "http://13.92.128.76:3001/auditLog" />
-            <cfset apiKey = "NlVHbjNpKioqbmg4UGlaSXZONFk0N0xJbWo1NGIy" />
+        <cfif CGI.SERVER_NAME neq "PROD_SERVER">
+            <cfset auditLogURL = "http://DEV_LOG_URL/auditLog" />
+            <cfset apiKey = "" />
         </cfif>
         <cfif structCount(arguments.oldData)>
 
@@ -343,7 +342,7 @@
                 
                 <cfset var serializedSendData = serializeJSON(local.sendDataNew,'struct') />
                 
-                <!--- logging.ecp123.com is set as a record in the C:\Windows\System32\drivers\etc\hosts file on the computer  --->
+                <!--- LOG_URL is set as a record in the C:\Windows\System32\drivers\etc\hosts file on the computer  --->
                 <cfhttp method="POST" url="#local.auditLogURL#" result="rData" resolveurl="true">
                     <cfhttpparam type="header" name="Content-Type" value="application/json">
                     <cfhttpparam type="header" name="Accept" value="application/json">
@@ -378,17 +377,6 @@
         <cfreturn />
     </cffunction>
 
-    <!--- unreferenced --->
-    <!--- <cfscript>
-        function structGetKey(theStruct, theKey, defaultVal){
-            if (structKeyExists(arguments.theStruct, arguments.theKey)){
-                return arguments.theStruct[arguments.theKey];
-            }else{
-                return arguments.defaultVal;
-            }
-        }
-    </cfscript> --->
-
     <cffunction name="qryAuditLog" access="public" returntype="any" output="false" hint="Call API to retrieve data for Audit Log report">
         <cfargument name="account_id" type="string" />
         <cfargument name="action" type="string" />
@@ -404,11 +392,11 @@
         <cfset var auditLogQuery = QueryNew("ID, ACCOUNT_ID, EVENT_ID,TASK_TYPE_ID,DATE_TIME,EMPLOYEE_ID,RESIDENT_ID,RESIDENT_NAME,COMMUNITY_NAME, ACTION, AREA, IP_ADDRESS, JSON, OGDATE") />
         <cfset var i = "" />
 
-        <cfset var auditLogURL = "https://logging.ecp123.com/auditLog" />
-        <cfset var apiKey = "UXJzNHY0QmdyZjRQeHFEb1QzMldwMVhYd1BWcnBaRzM=" />
-        <cfif CGI.SERVER_NAME neq "secure.ecp123.com">
-            <cfset auditLogURL = "http://13.92.128.76:3001/auditLog" />
-            <cfset apiKey = "NlVHbjNpKioqbmg4UGlaSXZONFk0N0xJbWo1NGIy" />
+        <cfset var auditLogURL = "https://LOG_URL/auditLog" />
+        <cfset var apiKey = "=" />
+        <cfif CGI.SERVER_NAME neq "PROD_SERVER">
+            <cfset auditLogURL = "http://DEV_LOG_URL/auditLog" />
+            <cfset apiKey = "" />
         </cfif>
 
         <!--- 
@@ -441,11 +429,6 @@
             <cfhttpparam type="header" name="Accept" value="application/json">
             <cfhttpparam type="header" name="Authorization" value="Api-Key #local.apiKey#">
             <cfhttpparam type="url" name="account_id" value="#arguments.account_id#">
-            <!--- <cfif structKeyExists(arguments, "identifiers")>
-                <cfloop collection="#arguments.identifiers#" item="key" >
-                    <cfhttpparam type="url" name="#trim(Key)#" value="#trim(identifiers[key])#">
-                </cfloop>
-            </cfif> --->
             <cfif structKeyExists(arguments, "action")>
                 <cfhttpparam type="url" name="action" value="#arguments.action#">
             </cfif>
@@ -497,41 +480,12 @@
     </cffunction>
 
     <cfscript>
-        //unreferenced
-        /*
-        function GetEpochTime() {
-            var datetime = 0;
-            if (ArrayLen(Arguments) is 0) {
-                datetime = Now();
-        
-            }
-            else {
-                if (isValid("Date",Arguments[1])) {
-                    datetime = Arguments[1];
-                } else {
-                    return NULL;
-                }
-            }
-            return DateDiff("s", "January 1 1970 00:00", datetime);
-        }
-        */
-
         function toUTC( required time, tz = "America/New_York" ){
             var timezone = createObject("java", "java.util.TimeZone").getTimezone( tz );
             var ms = timezone.getOffset( getTickCount() ); //get this timezone's current offset from UTC
             var seconds = ms / 1000;
             return dateAdd( 's', -1 * seconds, time );
         }
-
-        //unreferenced
-        /*
-        function UTCtoTZ( required time, required string tz ){
-            var timezone = createObject("java", "java.util.TimeZone").getTimezone( tz );
-            var ms = timezone.getOffset( getTickCount() ); //get this timezone's current offset from UTC
-            var seconds = ms / 1000;
-            return dateAdd( 's', seconds, time );
-        }
-        */
     </cfscript>
 
     <cffunction name="qryAuditLogDetails" access="public" returntype="any" output="false" hint="Calls API for changes that were logged ">
@@ -541,11 +495,11 @@
         <cfset var rData = "" />
         <cfset var results = ArrayNew(1) /> 
 
-        <cfset var auditLogURL = "https://logging.ecp123.com/auditLog" />
-        <cfset var apiKey = "UXJzNHY0QmdyZjRQeHFEb1QzMldwMVhYd1BWcnBaRzM=" />
-        <cfif CGI.SERVER_NAME neq "secure.ecp123.com">
-            <cfset auditLogURL = "http://13.92.128.76:3001/auditLog" />
-            <cfset apiKey = "NlVHbjNpKioqbmg4UGlaSXZONFk0N0xJbWo1NGIy" />
+        <cfset var auditLogURL = "https://LOG_URL/auditLog" />
+        <cfset var apiKey = "=" />
+        <cfif CGI.SERVER_NAME neq "PROD_SERVER">
+            <cfset auditLogURL = "http://DEV_LOG_URL/auditLog" />
+            <cfset apiKey = "" />
         </cfif>
 
         <!--- 
@@ -573,185 +527,6 @@
        
         <cfreturn local.results />
 
-    </cffunction>
-
-    <cffunction name="friendlyAuditLabel" access="public" returntype="string" output="false" hint="Audit details window calls this function to convert the database field name to the label displayed in ECP">
-        <cfargument name="field" type="string" required="true" />
-        <cfargument name="table" type="string" required="true" default="TASK_DETAILS" />
-
-        <cfset var friendlyLabel = "" />
-        <cfset var getPrefs = APPLICATION.obj.user.getPrefs() />
-        <cfswitch expression="#arguments.table#">
-            <cfcase value="TASK_DETAILS">
-                <cfswitch expression="#arguments.field#">
-                    <cfcase value='TASK_DETAIL_ID'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='TASK_ID'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='DATE_ID'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='DISPLAY_LABEL'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='ASSIGN_GROUPID'>
-                        <cfset local.friendlyLabel = "Responsible Task Group" />
-                    </cfcase>
-                    <cfcase value='ASSIGN_EMPLOYEEID'>
-                        <cfset local.friendlyLabel = "Assigned Employee" />
-                    </cfcase>
-                    <cfcase value='INITIALS'>
-                        <cfset local.friendlyLabel = "Charting Initials" />
-                    </cfcase>
-                    <cfcase value='DATE_TIME_COMPLETED'>
-                        <cfset local.friendlyLabel = "Charted On" />
-                    </cfcase>
-                    <cfcase value='DATE_TIME_POSTED'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='APPLICATION_ID'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='NO_GO_ID'>
-                        <cfset local.friendlyLabel = "Refusal Reason" />
-                    </cfcase>
-                    <cfcase value='NO_GO_NOTES'>
-                        <cfset local.friendlyLabel = "Refusal Notes" />
-                    </cfcase>
-                    <cfcase value='PULSE'>
-                        <cfset local.friendlyLabel = "Pulse" />
-                    </cfcase>
-                    <cfcase value='SYSTOLIC'>
-                        <cfset local.friendlyLabel = "Blood Pressure Systolic" />
-                    </cfcase>
-                    <cfcase value='DIASTOLIC'>
-                        <cfset local.friendlyLabel = "Blood Pressure Diastolic" />
-                    </cfcase>
-                    <cfcase value='WEIGHT'>
-                        <cfset local.friendlyLabel = "Weight" />
-                    </cfcase>
-                    <cfcase value='TEMPERATURE'>
-                        <cfset local.friendlyLabel = "Temperature" />
-                    </cfcase>
-                    <cfcase value='RESPIRATIONS'>
-                        <cfset local.friendlyLabel = "Respirations" />
-                    </cfcase>
-                    <cfcase value='BLOODSUGAR'>
-                        <cfset local.friendlyLabel = "Blood Sugar" />
-                    </cfcase>
-                    <cfcase value='PULSEOX'>
-                        <cfset local.friendlyLabel = "Pulseox" />
-                    </cfcase>
-                    <cfcase value='BLOODPRESSURE'>
-                        <cfset local.friendlyLabel = "Blood Pressure" />
-                    </cfcase>
-                    <cfcase value='EMPLOYEEID'>
-                        <cfset local.friendlyLabel = "Employee" />
-                    </cfcase>
-                    <cfcase value='COST'>
-                        <cfset local.friendlyLabel = "Cost" />
-                    </cfcase>
-                    <cfcase value='UNITS'>
-                        <cfset local.friendlyLabel = "Minutes" />
-                    </cfcase>
-                    <cfcase value='NOTES'>
-                        <cfset local.friendlyLabel = "Notes" />
-                    </cfcase>
-                    <cfcase value='LIST_ITEM_ID'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='UPDATED_EMPLOYEE'>
-                        <cfset local.friendlyLabel = "Update Employee" />
-                    </cfcase>
-                    <cfcase value='UPDATED_DATE'>
-                        <cfset local.friendlyLabel = "Updated Time" />
-                    </cfcase>
-                    <cfcase value='ISP_STATUS'>
-                        <cfset local.friendlyLabel = "<cfoutput>#local.getPrefs.ISP_CURRENT_STATUS#</cfoutput>" />
-                    </cfcase> 
-                    <cfcase value='ISP_GOALS'>
-                        <cfset local.friendlyLabel = "<cfoutput>#local.getPrefs.ISP_GOALS#</cfoutput>" />
-                    </cfcase>
-                    <cfcase value='ISP_PROVIDER'>
-                        <cfset local.friendlyLabel = "<cfoutput>#local.getPrefs.ISP_PROVIDER#</cfoutput>" />
-                    </cfcase>
-                    <cfcase value='ISP_CHANGES'>
-                        <cfset local.friendlyLabel = "<cfoutput>#local.getPrefs.ISP_CHANGES#</cfoutput>" />
-                    </cfcase>
-                    <cfcase value='PAIN_LEVEL'>
-                        <cfset local.friendlyLabel = "Pain Level" />
-                    </cfcase>
-                    <cfcase value='RED_FLAG'>
-                        <cfset local.friendlyLabel = "Flag as Important" />
-                    </cfcase>
-                    <cfcase value='PREP_DATE_TIME'>
-                        <cfset local.friendlyLabel = "Prep Date/Time" />
-                    </cfcase> 
-                    <cfcase value='PREP_EMPLOYEE_ID'>
-                        <cfset local.friendlyLabel = "Prepped By" />
-                    </cfcase>
-                    <cfcase value='PREP_INITIALS'>
-                        <cfset local.friendlyLabel = "Prep Initials" />
-                    </cfcase>
-                    <cfcase value='QTY_PER_ISSUE'>
-                        <cfset local.friendlyLabel = "Quantity Passed" />
-                    </cfcase>
-                    <cfcase value='EMPLOYEE_CHARTING_COST'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='EMPLOYEE_CHARTING_POINTS'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='VITALS_DATE_TIME'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='VITALS_EMPLOYEE_ID'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='QUESTIONS_DATE_TIME'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='QUESTIONS_EMPLOYEE_ID'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='ERROR_TYPE'>
-                        <cfset local.friendlyLabel = "Error Type" />
-                    </cfcase>
-                    <cfcase value='ERROR_REASON'>
-                        <cfset local.friendlyLabel = "Error Reason" />
-                    </cfcase>
-                    <cfcase value='ADVERSE_EFFECT'>
-                        <cfset local.friendlyLabel = "Was there a serious adverse effect associated with this error?" />
-                    </cfcase>
-                </cfswitch>
-            </cfcase>
-            <cfcase value="TASK_DETAILS_AI">
-                <cfswitch expression="#arguments.field#">
-                    <cfcase value='VERSION_TASK_AI_ID'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='TASK_AI_ID'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='TASK_DETAIL_ID'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='TD_AI_ID'>
-                        <cfset local.friendlyLabel = "" />
-                    </cfcase>
-                    <cfcase value='VALUE_TEXT'>
-                        <cfset local.friendlyLabel = "Text Answer" />
-                    </cfcase>
-                    <cfcase value='VALUE_NUM'>
-                        <cfset local.friendlyLabel = "Answer" />
-                    </cfcase>
-                </cfswitch>
-            </cfcase>
-        </cfswitch>
-
-        <cfreturn LOCAL.friendlyLabel />
     </cffunction>
 
     <cffunction name="buildLogDates" output="false" access="public" returnType="struct" hint="Audit log report calls this function to get dates associated with options">
